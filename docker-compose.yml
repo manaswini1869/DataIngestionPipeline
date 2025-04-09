@@ -1,21 +1,21 @@
 version: "3.8"
 services:
-  scrapy_app:
-    build:
-      context: .
-      dockerfile: dockerfile
-    container_name: data_ingestion_scrapy_app
-    command: ["sleep", "infinity"]
-    volumes:
-      - ./jobs_project:/app/jobs_project
-      - ./infra:/app/infra
-      - ./query.py:/app/query.py
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017
-      - MONGO_DB_NAME=data_ingestion_db
-      - REDIS_URI=redis://redis:63790
-    env_file:
-      - .env
+  # scrapy_app:
+  #   build:
+  #     context: .
+  #     dockerfile: dockerfile
+  #   container_name: data_ingestion_scrapy_app
+  #   command: ["sleep", "infinity"]
+  #   volumes:
+  #     - ./jobs_project:/app/jobs_project
+  #     - ./infra:/app/infra
+  #     - ./query.py:/app/query.py
+  #   environment:
+  #     - MONGO_URI=mongodb://mongodb:27017
+  #     - MONGO_DB_NAME=data_ingestion_db
+  #     - REDIS_URI=redis://redis:63790
+  #   env_file:
+  #     - .env
   mongodb:
     image: mongo:6.0
     container_name: data_ingestion_mongo_db
@@ -32,6 +32,6 @@ services:
     volumes:
       - redis_data:/data # will be persisting locally as well
     restart: unless-stopped
-  volumes:
-    mongo_data:
-    redis_data:
+volumes:
+  mongo_data:
+  redis_data:

@@ -2,3 +2,4 @@ Scrapy>=2.12.0   # Scrapy version from doc link redirection
 pymongo>=4.6.0   # For MongoDB connection
 redis>=5.0.0     # For Redis connection
 python-dotenv>=1.0.0
+python-dateutil>=2.8.0
