@@ -1,23 +1,27 @@
-# Scrapy settings for jobs_project project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+# jobs_project/jobs_project/settings.py
 
 BOT_NAME = "jobs_project"
 
 SPIDER_MODULES = ["jobs_project.spiders"]
 NEWSPIDER_MODULE = "jobs_project.spiders"
 
+# Obey robots.txt rules (less relevant for local files, but good practice)
+ROBOTSTXT_OBEY = False # Set to False when scraping local files
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "jobs_project (+http://www.yourdomain.com)"
+# Configure item pipelines
+# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+ITEM_PIPELINES = {
+   # Lower numbers run first
+#    "jobs_project.pipelines.RedisDeduplicationPipeline": 100, # Optional: run deduplication first
+   "jobs_project.pipelines.MongoDBPipeline": 300,           # Store item in MongoDB
+}
 
-# Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+# --- Custom Settings ---
+# Field in JobItem to use for Redis deduplication (e.g., 'job_id', 'url')
+DUPEFILTER_KEY = 'req_id' # Make sure this field exists and is unique in your items
+
+# MongoDB collection name
+MONGO_COLLECTION = 'testing_jobs'
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -60,12 +64,6 @@ ROBOTSTXT_OBEY = True
 #    "scrapy.extensions.telnet.TelnetConsole": None,
 #}
 
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "jobs_project.pipelines.JobsProjectPipeline": 300,
-#}
-
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
@@ -88,5 +86,9 @@ ROBOTSTXT_OBEY = True
 #HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
 
 # Set settings whose default value is deprecated to a future-proof value
+REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# Logging Settings
+LOG_LEVEL = 'INFO' # Set to 'DEBUG' for more verbose output

@@ -7,7 +7,7 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-MONGO_DB_NAME = os.getenv('MONGO_DB_NAmE', 'data_ingestion_db')
+MONGO_DB_NAME = os.getenv('MONGO_DB_NAME', 'data_ingestion_db')
 
 mongo_client = None
 
@@ -20,7 +20,7 @@ Function will return None if there is an exception or if the connection timed ou
 '''
 def get_mongo_client():
     global mongo_client
-    if mongo_client:
+    if mongo_client is not None:
         try:
             mongo_client.admin.command('ping')
             logging.debug("Reusing existing connection")
@@ -48,7 +48,7 @@ If any error during the process logs the exception
 '''
 def get_db():
     client = get_mongo_client()
-    if client:
+    if client is not None:
         try:
             db = client[MONGO_DB_NAME]
             return db
@@ -65,7 +65,7 @@ If successful return the result from pymongo.result.InsertOneResult else None
 '''
 def insert_item(item: dict, collection_name: str):
     db = get_db()
-    if db:
+    if db is not None:
         try:
             collection = db[collection_name]
             result = collection.insert_one(item)
@@ -84,7 +84,7 @@ return query response, if exception return empty list
 def find_item(query: dict, collection_name: str, projection: dict = None):
     db = get_db()
     items = []
-    if db:
+    if db is not None:
         try:
             collection = db[collection_name]
             cursor = collection.find(query, projection)

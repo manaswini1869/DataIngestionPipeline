@@ -48,4 +48,3 @@ class JobsProjectItem(scrapy.Item):
     category= scrapy.Field()
     full_location= scrapy.Field()
     short_location= scrapy.Field()
-    pass
