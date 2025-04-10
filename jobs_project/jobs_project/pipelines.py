@@ -3,6 +3,7 @@ import json
 from itemadapter import ItemAdapter
 from scrapy.exceptions import DropItem, NotConfigured
 
+# importing the mongodb and redis function to be re-used in the pipeline
 try:
     from infra.mongodb_connector import insert_item, get_db, close_mongo_connection
     from infra.redis_connector import get_redis_connection, add_to_set, is_member

@@ -8,12 +8,17 @@ from jobs_project.items import JobsProjectItem
 
 class JobProjectSpider(scrapy.Spider):
     name = "JobProjectSpider"
+    # setting the path to the data files
     data_dir = Path(__file__).parent.parent.parent / 'jobs_project' / 'data'
     start_urls = [
         f'file://{str(data_dir.resolve() / "s01.json")}',
         f'file://{str(data_dir.resolve() / "s02.json")}',
     ]
 
+    '''
+    Sets the start request url for scrapy to communicate with
+    Defines the urls that will used by scrapy
+    '''
     def start_requests(self):
         for url in self.start_urls:
             logging.info(f"{url}")
@@ -30,6 +35,10 @@ class JobProjectSpider(scrapy.Spider):
             else:
                 yield scrapy.Request(url=url, callback=self.parse)
 
+    '''
+    From the urls generated, this function will scrape the data for the
+    fields declared in items.py
+    '''
     def parse(self, data, file_path=None):
         if file_path:
             logging.info(f"Processing file: {file_path}")

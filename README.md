@@ -20,7 +20,8 @@ Technologies used: Scrapy, MongoDB, Redis, Docker, Python
 ### Running the pipeline using script
 1. There are a lot of commands to get the pipeline working, to make the evaluators or the users life easier I wrote a script that runs all the commands for you, when you run a single command.
 2. Run the command `.\run_script.sh` in a bash terminal and the scraping takes care of itself.
-3. Use the `.\run_script.sh` for more options that can be used to run the script.
+3. Use the `.\run_script.sh -h` for more options that can be used to run the script.
+4. Run the script on a linux shell.
 
 ## Project Structure
 
@@ -29,4 +30,25 @@ I followed the sample project structure given in the instructions. To make the s
 ### Brief over of project structure
 
 #### infra
-This folder contains the
+`mongodb_connector.py`: This file contains the functions used to connect to mongoDB and the helper functions used in pipeline to process and store the data
+`redis_connector.py`: This file contains the functions used to connect to redis and the helper functions used in pipeline to process and store the data
+
+#### jobs_project
+
+`jobs_project/items.py`: Contains the fields to be extracted from json files
+`jobs_project/pipelines.py`: Contains the definition to run redis and mongo db pipeline
+`jobs_project/settings.py`: Contains config information required for scrapy
+`jobs_project/spiders/json_spider.py`: Starts the scrapper and gets the required fields from files
+`jobs_project/scrapy.cfg`: scrapy configuration file
+
+#### query.py
+This is the script that will export all the data from mongodb to a final_jobs.csv file
+
+## References used
+1. https://docs.scrapy.org/en/latest/index.html
+2. https://stackoverflow.com/questions More than couple of stackoverflow posts to fit here
+3. https://www.zenrows.com/blog/scrapy-python#what-is-web-scraping (to get me started)
+
+## Video link
+
+[Here is the link to working implementation](https://drive.google.com/file/d/12ynw8DmXHlAlwMURxX-js1sqMUtdHhpH/view?usp=drive_link)

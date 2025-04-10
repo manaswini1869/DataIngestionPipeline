@@ -5,7 +5,7 @@
 
 import scrapy
 class JobsProjectItem(scrapy.Item):
-    # define the fields for your item here like=
+    # defining the fields from json like the below example
     # name = scrapy.Field()
 
     # job data details
