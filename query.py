@@ -1,94 +1,113 @@
-# query.py
 import csv
 import logging
 from datetime import datetime
+import json
 
-# --- Import Infrastructure Connectors ---
 try:
-    from infra.mongodb_connector import find_items, get_db, close_mongo_connection
-    # from infra.redis_connector import get_redis_connection # Uncomment if you need Redis info
+    from infra.mongodb_connector import find_item, get_db, close_mongo_connection
 except ImportError:
     logging.error("Could not import from 'infra' module. Ensure it's in the Python path.")
-    exit(1) # Exit if connectors are missing
+    exit(1)
 
-# --- Configuration ---
-MONGO_COLLECTION_NAME = 'testing_jobs' # Should match the collection used in settings.py/pipelines
+# Configuration
+MONGO_COLLECTION_NAME = 'testing_jobs'
 OUTPUT_CSV_FILE = 'final_jobs.csv'
 
-# Setup basic logging
+CSV_FIELDNAMES = [
+    'req_id',
+    'slug',
+    'title',
+    'brand',
+    'employment_type',
+    'language',
+    'languages',
+    'tags',
+    'location_name',
+    'street_address',
+    'city',
+    'state',
+    'postal_code',
+    'country_code',
+    'full_location',
+    'latitude',
+    'longitude',
+    'apply_url',
+    'update_date',
+    'create_date',
+    'description'
+]
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+"""
+Helper function to format values for CSV writing.
+"""
+def format_value_for_csv(value):
+    if isinstance(value, list):
+        return "|".join(str(item) for item in value if item is not None)
+    elif isinstance(value, datetime):
+        return value.isoformat()
+    elif isinstance(value, (dict, bool)):
+         try:
+             return json.dumps(value)
+         except TypeError:
+             return str(value)
+    elif value is None:
+        return ""
+    else:
+        return str(value)
+
+"""
+    Fetches job data from MongoDB and exports selected fields to a CSV file.
+"""
 def export_jobs_to_csv():
-    """
-    Fetches job data from MongoDB and exports it to a CSV file.
-    """
+
     logging.info("Starting job export process...")
 
-    # 1. Connect to MongoDB
     db = get_db()
-    if not db:
+    if db is None:
         logging.error("Failed to connect to MongoDB. Aborting export.")
         return
 
-    # 2. Retrieve Data
     logging.info(f"Fetching all items from MongoDB collection: '{MONGO_COLLECTION_NAME}'")
-    # Using the reusable find_items function from the connector
-    # Pass an empty query {} to find all documents
     try:
-        all_jobs = find_items(query={}, collection_name=MONGO_COLLECTION_NAME)
+        cursor = find_item(query={}, collection_name=MONGO_COLLECTION_NAME)
+        all_jobs = list(cursor)
     except Exception as e:
-        logging.error(f"An error occurred while fetching data from MongoDB: {e}")
-        close_mongo_connection() # Attempt to close connection on error
+        logging.error(f"An error occurred while fetching data from MongoDB: {e}", exc_info=True)
+        close_mongo_connection()
         return
 
     if not all_jobs:
-        logging.warning(f"No jobs found in collection '{MONGO_COLLECTION_NAME}'. CSV file will be empty.")
-        close_mongo_connection()
-        # Create empty CSV with header? Or just exit? Let's create header.
-        # return # Or proceed to write empty file with header
-
-    logging.info(f"Retrieved {len(all_jobs)} jobs from MongoDB.")
-
-    # 3. Prepare for CSV Export
-    if not all_jobs: # Handle case where find_items returns empty list
-        fieldnames = ['job_id', 'title', 'company', 'location', 'description', 'date_posted', 'url', 'source_file', 'scraped_timestamp'] # Default header
+        logging.warning(f"No jobs found in collection '{MONGO_COLLECTION_NAME}'. Creating CSV with headers only.")
     else:
-        # Dynamically determine headers from the first item (or union of keys)
-        # Be cautious if items have varying structures
-        fieldnames = list(all_jobs[0].keys())
-        # Ensure common fields are first? Or sort alphabetically?
-        # Let's remove MongoDB's internal '_id' if present
-        if '_id' in fieldnames:
-            fieldnames.remove('_id')
-        # You might want to define a fixed order for columns:
-        # fieldnames = ['job_id', 'title', 'company', 'location', 'date_posted', 'url', ...]
+         logging.info(f"Retrieved {len(all_jobs)} jobs from MongoDB.")
 
-    logging.info(f"Exporting to CSV file: {OUTPUT_CSV_FILE} with headers: {fieldnames}")
-
-    # 4. Write to CSV
+    logging.info(f"Exporting to CSV file: {OUTPUT_CSV_FILE}")
     try:
         with open(OUTPUT_CSV_FILE, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore') # Ignore extra fields in data not in header
+            writer = csv.DictWriter(csvfile, fieldnames=CSV_FIELDNAMES)
 
             writer.writeheader()
-            for job in all_jobs:
-                # MongoDB's _id is not usually needed in CSV, handled by extrasaction='ignore' if not removed from fieldnames
-                # Convert datetime objects to ISO format string for CSV compatibility
-                for key, value in job.items():
-                    if isinstance(value, datetime):
-                        job[key] = value.isoformat()
-                writer.writerow(job)
+
+            for job_doc in all_jobs:
+                row_data = {}
+                for field in CSV_FIELDNAMES:
+                    raw_value = job_doc.get(field, None)
+                    row_data[field] = format_value_for_csv(raw_value)
+
+                writer.writerow(row_data)
 
         logging.info(f"Successfully exported {len(all_jobs)} jobs to {OUTPUT_CSV_FILE}")
 
     except IOError as e:
         logging.error(f"Error writing to CSV file {OUTPUT_CSV_FILE}: {e}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred during CSV export: {e}")
+        logging.error(f"An unexpected error occurred during CSV export: {e}", exc_info=True)
 
-    # 5. Close Connections (Optional but good practice)
     close_mongo_connection()
-    # Close Redis connection if used
+    logging.info("MongoDB connection closed.")
+
 
 if __name__ == "__main__":
     export_jobs_to_csv()

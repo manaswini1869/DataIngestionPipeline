@@ -13,7 +13,7 @@ services:
     environment:
       - MONGO_URI=mongodb://mongodb:27017
       - MONGO_DB_NAME=data_ingestion_db
-      - REDIS_URI=redis://redis:63790
+      - REDIS_URI=redis://redis:6379/0
       - PYTHONPATH=/app:$PYTHONPATH
     env_file:
       - .env

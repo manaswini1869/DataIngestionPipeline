@@ -5,7 +5,7 @@ from redis.exceptions import ConnectionError
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+REDIS_URL = os.getenv('REDIS_URI', 'redis://localhost:6379/0')
 
 redis_pool = None
 
@@ -95,7 +95,7 @@ def add_to_set(set_name: str, value: str):
     return added
 
 '''
-
+Checks foe the slug in the redis cache
 '''
 def is_member(set_name: str, value: str):
     r = get_redis_connection()
